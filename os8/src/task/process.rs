@@ -32,9 +32,9 @@ pub struct ProcessControlBlockInner {
     pub condvar_list: Vec<Option<Arc<Condvar>>>,
     pub mutex_alloc: Vec<Option<usize>>,
     pub mutex_request: Vec<Option<usize>>,
-    pub sem_avail: Vec<usize>,
-    pub sem_alloc: Vec<Vec<usize>>,
-    pub sem_request: Vec<Option<usize>>,
+    pub sem_avail: Vec<usize>, // 每个资源分配出去的信号量
+    pub sem_alloc: Vec<Vec<usize>>, // 每个资源给每个线程分了多少信号量
+    pub sem_request: Vec<Option<usize>>, // 每个线程占的信号量id
     pub deadlock_det_enabled: bool,
 }
 
@@ -107,8 +107,10 @@ impl ProcessControlBlock {
                     // mutex_request: Vec::new(),
                     mutex_request: vec![None],
                     sem_avail: Vec::new(),
-                    sem_alloc: Vec::new(),
-                    sem_request: Vec::new(),
+                    // sem_alloc: Vec::new(),
+                    sem_alloc: vec![Vec::new()],
+                    // sem_request: Vec::new(),
+                    sem_request: vec![None],
                     deadlock_det_enabled: false,
                 })
             },
@@ -235,8 +237,10 @@ impl ProcessControlBlock {
                     // mutex_request: Vec::new(),
                     mutex_request: vec![None],
                     sem_avail: Vec::new(),
-                    sem_alloc: Vec::new(),
-                    sem_request: Vec::new(),
+                    // sem_alloc: Vec::new(),
+                    sem_alloc: vec![Vec::new()],
+                    // sem_request: Vec::new(),
+                    sem_request: vec![None],
                     deadlock_det_enabled: false,
                 })
             },
@@ -296,8 +300,10 @@ impl ProcessControlBlock {
                     // mutex_request: Vec::new(),
                     mutex_request: vec![None],
                     sem_avail: Vec::new(),
-                    sem_alloc: Vec::new(),
-                    sem_request: Vec::new(),
+                    // sem_alloc: Vec::new(),
+                    sem_alloc: vec![Vec::new()],
+                    // sem_request: Vec::new(),
+                    sem_request: vec![None],
                     deadlock_det_enabled: false,
                 })
             },

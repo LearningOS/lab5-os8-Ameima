@@ -3,6 +3,8 @@ use crate::task::{block_current_and_run_next, current_process, current_task};
 use crate::timer::{add_timer, get_time_ms};
 use alloc::collections::BTreeSet;
 use alloc::sync::Arc;
+#[macro_use]
+use alloc::vec;
 use alloc::vec::Vec;
 use super::sys_gettid;
 
@@ -35,6 +37,7 @@ pub fn sys_mutex_create(blocking: bool) -> isize {
         id as isize
     } else {
         process_inner.mutex_list.push(mutex);
+        process_inner.mutex_alloc.push(None);
         process_inner.mutex_list.len() as isize - 1
     }
 }
@@ -121,6 +124,10 @@ pub fn sys_semaphore_create(res_count: usize) -> isize {
         process_inner
             .semaphore_list
             .push(Some(Arc::new(Semaphore::new(res_count))));
+        process_inner.sem_avail.push(res_count);
+        for tid in 0..process_inner.sem_alloc.len() {
+            process_inner.sem_alloc[tid].push(res_count);
+        }
         process_inner.semaphore_list.len() - 1
     };
     id as isize
@@ -128,8 +135,12 @@ pub fn sys_semaphore_create(res_count: usize) -> isize {
 
 pub fn sys_semaphore_up(sem_id: usize) -> isize {
     let process = current_process();
-    let process_inner = process.inner_exclusive_access();
+    let mut process_inner = process.inner_exclusive_access();
     let sem = Arc::clone(process_inner.semaphore_list[sem_id].as_ref().unwrap());
+    let tid = sys_gettid() as usize;
+    process_inner.sem_request[tid] = Some(sem_id);
+    process_inner.sem_avail[sem_id] += 1;
+    process_inner.sem_alloc[tid][sem_id] -= 1;
     drop(process_inner);
     sem.up();
     0
